@@ -1,0 +1,18 @@
+name: Probar Telegram
+on: workflow_dispatch
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enviar mensaje de prueba
+        env:
+          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          CHAT_ID=$(curl -s "https://api.telegram.org/bot${TOKEN}/getUpdates" | jq -r '[.result[] | select(.message)] | last | .message.chat.id')
+          if [ -z "$CHAT_ID" ] || [ "$CHAT_ID" = "null" ]; then
+            echo "No encuentro tu chat. Abre tu bot, escribe hola y repite."
+            exit 1
+          fi
+          curl -s -o /dev/null "https://api.telegram.org/bot${TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${CHAT_ID}" \
+            --data-urlencode "text=Hola desde GitHub. Tu chat id es: ${CHAT_ID}"
